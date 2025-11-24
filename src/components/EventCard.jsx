@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Calendar, MapPin, Users, Clock } from 'lucide-react'
-import { formatDate, formatTime, isEventPast, getStatusColor } from '../utils/formatters'
+import { formatDate, formatTimeRange, isEventPast, getStatusColor } from '../utils/formatters'
 import { signUpForEvent, checkExistingSignup, getEventSignupCount } from '../utils/eventHelpers'
 import Button from './Button'
 import Card, { CardBody, CardFooter } from './Card'
@@ -56,7 +56,7 @@ export default function EventCard({ event, studentId, onSignupSuccess }) {
     }
   }
 
-  const isPast = isEventPast(event.date)
+  const isPast = isEventPast(event.start_date || event.date)
   const isFull = event.capacity && signupCount >= event.capacity
 
   return (
@@ -70,24 +70,24 @@ export default function EventCard({ event, studentId, onSignupSuccess }) {
 
           <div className="space-y-2">
             <div className="flex items-center text-gray-700 text-sm">
-              <Calendar className="w-4 h-4 mr-2 text-kellenberg-maroon" />
-              <span>{formatDate(event.date)}</span>
-              {event.date && (
+              <Calendar className="w-4 h-4 mr-2 text-kellenberg-royal" />
+              <span>{formatDate(event.start_date || event.date)}</span>
+              {(event.start_date || event.date) && event.end_date && (
                 <>
-                  <Clock className="w-4 h-4 ml-3 mr-2 text-kellenberg-maroon" />
-                  <span>{formatTime(event.date)}</span>
+                  <Clock className="w-4 h-4 ml-3 mr-2 text-kellenberg-royal" />
+                  <span>{formatTimeRange(event.start_date || event.date, event.end_date)}</span>
                 </>
               )}
             </div>
 
             <div className="flex items-center text-gray-700 text-sm">
-              <MapPin className="w-4 h-4 mr-2 text-kellenberg-maroon" />
+              <MapPin className="w-4 h-4 mr-2 text-kellenberg-royal" />
               <span>{event.location}</span>
             </div>
 
             {event.capacity && (
               <div className="flex items-center text-gray-700 text-sm">
-                <Users className="w-4 h-4 mr-2 text-kellenberg-maroon" />
+                <Users className="w-4 h-4 mr-2 text-kellenberg-royal" />
                 <span>
                   {signupCount} / {event.capacity} signed up
                   {isFull && <span className="text-red-600 ml-2 font-medium">FULL</span>}

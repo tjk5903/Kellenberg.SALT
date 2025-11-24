@@ -1,15 +1,29 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { updateEvent } from '../utils/eventHelpers'
 import Button from './Button'
 import Input from './Input'
 
 export default function EditEventModal({ event, onClose, onSuccess }) {
+  // Format date for datetime-local input (needs to be in local timezone)
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    return `${year}-${month}-${day}T${hours}:${minutes}`
+  }
+
   const [formData, setFormData] = useState({
     title: event.title || '',
     description: event.description || '',
     location: event.location || '',
-    date: event.date ? event.date.slice(0, 16) : '', // Format for datetime-local
+    start_date: formatDateForInput(event.start_date || event.date),
+    end_date: formatDateForInput(event.end_date),
     capacity: event.capacity || '',
   })
   const [loading, setLoading] = useState(false)
@@ -32,14 +46,15 @@ export default function EditEventModal({ event, onClose, onSuccess }) {
         title: formData.title,
         description: formData.description,
         location: formData.location,
-        date: formData.date,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
         capacity: formData.capacity ? parseInt(formData.capacity) : null,
       }
 
       const { error: updateError } = await updateEvent(event.id, eventData)
 
       if (updateError) {
-        setError(updateError.message)
+        setError('Failed to update event: ' + updateError.message)
       } else {
         onSuccess()
       }
@@ -50,11 +65,18 @@ export default function EditEventModal({ event, onClose, onSuccess }) {
     }
   }
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+  return createPortal(
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 overflow-y-auto" 
+      style={{ zIndex: 9999 }}
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white rounded-xl shadow-2xl max-w-md w-full my-8"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white">
+        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white rounded-t-xl">
           <h2 className="text-2xl font-bold text-gray-900">Edit Event</h2>
           <button
             onClick={onClose}
@@ -91,7 +113,7 @@ export default function EditEventModal({ event, onClose, onSuccess }) {
               value={formData.description}
               onChange={handleChange}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-kellenberg-maroon focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-kellenberg-royal focus:border-transparent"
               placeholder="Describe the event..."
             />
           </div>
@@ -106,11 +128,20 @@ export default function EditEventModal({ event, onClose, onSuccess }) {
           />
 
           <Input
-            label="Date & Time"
-            name="date"
+            label="Start Date & Time"
+            name="start_date"
             type="datetime-local"
             required
-            value={formData.date}
+            value={formData.start_date}
+            onChange={handleChange}
+          />
+
+          <Input
+            label="End Date & Time"
+            name="end_date"
+            type="datetime-local"
+            required
+            value={formData.end_date}
             onChange={handleChange}
           />
 
@@ -145,7 +176,8 @@ export default function EditEventModal({ event, onClose, onSuccess }) {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

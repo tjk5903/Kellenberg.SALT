@@ -37,12 +37,12 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-kellenberg-maroon to-red-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-kellenberg-royal to-blue-900 flex items-center justify-center px-4">
       <div className="max-w-md w-full space-y-8">
         {/* Logo and Title */}
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-kellenberg-gold rounded-full mb-4">
-            <span className="text-4xl font-bold text-kellenberg-maroon">S</span>
+            <span className="text-4xl font-bold text-kellenberg-royal">S</span>
           </div>
           <h2 className="text-4xl font-bold text-white mb-2">SALT</h2>
           <p className="text-kellenberg-gold font-medium">
@@ -98,7 +98,7 @@ export default function Login() {
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
                 Don't have an account?{' '}
-                <Link to="/signup" className="text-kellenberg-maroon font-medium hover:underline">
+                <Link to="/signup" className="text-kellenberg-royal font-medium hover:underline">
                   Sign up
                 </Link>
               </p>

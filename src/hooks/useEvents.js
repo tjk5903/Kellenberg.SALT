@@ -18,7 +18,7 @@ export const useEvents = () => {
             last_name
           )
         `)
-        .order('date', { ascending: true })
+        .order('start_date', { ascending: true })
 
       if (error) throw error
       setEvents(data || [])
@@ -56,7 +56,8 @@ export const useStudentEventSignups = (studentId) => {
             title,
             description,
             location,
-            date,
+            start_date,
+            end_date,
             capacity
           )
         `)
@@ -94,7 +95,7 @@ export const useModeratorEvents = (moderatorId) => {
         .from('events')
         .select('*')
         .eq('created_by', moderatorId)
-        .order('date', { ascending: true })
+        .order('start_date', { ascending: true })
 
       if (error) throw error
       setEvents(data || [])

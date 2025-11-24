@@ -3,7 +3,8 @@ import { format, parseISO, isPast, isFuture } from 'date-fns'
 export const formatDate = (dateString) => {
   if (!dateString) return ''
   try {
-    const date = parseISO(dateString)
+    // Create a date object that respects the local timezone
+    const date = new Date(dateString)
     return format(date, 'MMMM d, yyyy')
   } catch (error) {
     return dateString
@@ -13,7 +14,8 @@ export const formatDate = (dateString) => {
 export const formatDateTime = (dateString) => {
   if (!dateString) return ''
   try {
-    const date = parseISO(dateString)
+    // Create a date object that respects the local timezone
+    const date = new Date(dateString)
     return format(date, 'MMM d, yyyy h:mm a')
   } catch (error) {
     return dateString
@@ -23,17 +25,31 @@ export const formatDateTime = (dateString) => {
 export const formatTime = (dateString) => {
   if (!dateString) return ''
   try {
-    const date = parseISO(dateString)
+    // Create a date object that respects the local timezone
+    const date = new Date(dateString)
     return format(date, 'h:mm a')
   } catch (error) {
     return dateString
   }
 }
 
+export const formatTimeRange = (startDateString, endDateString) => {
+  if (!startDateString || !endDateString) return ''
+  try {
+    const startDate = new Date(startDateString)
+    const endDate = new Date(endDateString)
+    const startTime = format(startDate, 'h:mm a')
+    const endTime = format(endDate, 'h:mm a')
+    return `${startTime} - ${endTime}`
+  } catch (error) {
+    return ''
+  }
+}
+
 export const isEventPast = (dateString) => {
   if (!dateString) return false
   try {
-    return isPast(parseISO(dateString))
+    return isPast(new Date(dateString))
   } catch (error) {
     return false
   }
@@ -42,7 +58,7 @@ export const isEventPast = (dateString) => {
 export const isEventUpcoming = (dateString) => {
   if (!dateString) return false
   try {
-    return isFuture(parseISO(dateString))
+    return isFuture(new Date(dateString))
   } catch (error) {
     return false
   }

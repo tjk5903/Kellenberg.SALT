@@ -27,72 +27,78 @@ export default function StudentDashboard() {
     <Layout>
       <div className="space-y-6">
         {/* Welcome Section */}
-        <div className="bg-gradient-to-r from-kellenberg-maroon to-red-800 rounded-xl shadow-lg p-6 text-white">
-          <h1 className="text-3xl font-bold mb-2">
+        <div className="bg-gradient-to-r from-kellenberg-royal via-blue-800 to-kellenberg-royal rounded-xl shadow-2xl p-8 border-4 border-kellenberg-gold">
+          <h1 className="text-4xl font-bold mb-2 text-white drop-shadow-lg">
             Welcome, {userProfile?.first_name}!
           </h1>
-          <p className="text-kellenberg-gold">
+          <p className="text-kellenberg-gold text-lg font-semibold">
             Explore service events and track your participation
           </p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white rounded-lg shadow p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-xl shadow-xl p-6 border-l-4 border-kellenberg-royal hover:shadow-2xl transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Total Signups</p>
-                <p className="text-3xl font-bold text-kellenberg-maroon">{signups.length}</p>
+                <p className="text-gray-600 text-sm font-medium uppercase tracking-wide">Total Signups</p>
+                <p className="text-4xl font-bold text-kellenberg-royal">{signups.length}</p>
               </div>
-              <Calendar className="w-10 h-10 text-kellenberg-gold" />
+              <div className="bg-kellenberg-gold/10 p-3 rounded-full">
+                <Calendar className="w-10 h-10 text-kellenberg-gold" />
+              </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-xl shadow-xl p-6 border-l-4 border-green-500 hover:shadow-2xl transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Approved</p>
-                <p className="text-3xl font-bold text-green-600">
+                <p className="text-gray-600 text-sm font-medium uppercase tracking-wide">Approved</p>
+                <p className="text-4xl font-bold text-green-600">
                   {signups.filter(s => s.status === 'Approved').length}
                 </p>
               </div>
-              <Clock className="w-10 h-10 text-green-600" />
+              <div className="bg-green-100 p-3 rounded-full">
+                <Clock className="w-10 h-10 text-green-600" />
+              </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-xl shadow-xl p-6 border-l-4 border-kellenberg-gold hover:shadow-2xl transition-shadow">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Pending</p>
-                <p className="text-3xl font-bold text-yellow-600">
+                <p className="text-gray-600 text-sm font-medium uppercase tracking-wide">Pending</p>
+                <p className="text-4xl font-bold text-kellenberg-gold">
                   {signups.filter(s => s.status === 'Pending').length}
                 </p>
               </div>
-              <MapPin className="w-10 h-10 text-yellow-600" />
+              <div className="bg-kellenberg-gold/10 p-3 rounded-full">
+                <MapPin className="w-10 h-10 text-kellenberg-gold" />
+              </div>
             </div>
           </div>
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="border-b border-gray-200">
+        <div className="bg-white rounded-xl shadow-2xl overflow-hidden border-2 border-kellenberg-gold/20">
+          <div className="border-b-2 border-kellenberg-gold/30">
             <nav className="flex -mb-px">
               <button
                 onClick={() => setActiveTab('available')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                className={`px-6 py-4 text-sm font-bold border-b-4 transition-all ${
                   activeTab === 'available'
-                    ? 'border-kellenberg-maroon text-kellenberg-maroon'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300'
+                    ? 'border-kellenberg-royal text-kellenberg-royal bg-kellenberg-royal/5'
+                    : 'border-transparent text-gray-600 hover:text-kellenberg-royal hover:border-kellenberg-gold/50 hover:bg-gray-50'
                 }`}
               >
                 Available Events ({availableEvents.length})
               </button>
               <button
                 onClick={() => setActiveTab('my-events')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                className={`px-6 py-4 text-sm font-bold border-b-4 transition-all ${
                   activeTab === 'my-events'
-                    ? 'border-kellenberg-maroon text-kellenberg-maroon'
-                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300'
+                    ? 'border-kellenberg-royal text-kellenberg-royal bg-kellenberg-royal/5'
+                    : 'border-transparent text-gray-600 hover:text-kellenberg-royal hover:border-kellenberg-gold/50 hover:bg-gray-50'
                 }`}
               >
                 My Events ({signups.length})
@@ -106,7 +112,7 @@ export default function StudentDashboard() {
               <div>
                 {eventsLoading ? (
                   <div className="text-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-kellenberg-maroon mx-auto"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-kellenberg-royal mx-auto"></div>
                     <p className="mt-4 text-gray-600">Loading events...</p>
                   </div>
                 ) : availableEvents.length === 0 ? (
@@ -135,7 +141,7 @@ export default function StudentDashboard() {
               <div>
                 {signupsLoading ? (
                   <div className="text-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-kellenberg-maroon mx-auto"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-kellenberg-royal mx-auto"></div>
                     <p className="mt-4 text-gray-600">Loading your events...</p>
                   </div>
                 ) : signups.length === 0 ? (

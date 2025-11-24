@@ -81,12 +81,12 @@ export default function Signup() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-kellenberg-maroon to-red-900 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-kellenberg-royal to-blue-900 flex items-center justify-center px-4 py-12">
       <div className="max-w-md w-full space-y-8">
         {/* Logo and Title */}
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-kellenberg-gold rounded-full mb-4">
-            <span className="text-4xl font-bold text-kellenberg-maroon">S</span>
+            <span className="text-4xl font-bold text-kellenberg-royal">S</span>
           </div>
           <h2 className="text-4xl font-bold text-white mb-2">SALT</h2>
           <p className="text-kellenberg-gold font-medium">Create Your Account</p>
@@ -113,8 +113,8 @@ export default function Signup() {
                     onClick={() => setFormData({ ...formData, userType: 'student' })}
                     className={`p-3 rounded-lg border-2 font-medium transition-colors ${
                       formData.userType === 'student'
-                        ? 'border-kellenberg-maroon bg-kellenberg-maroon text-white'
-                        : 'border-gray-300 text-gray-700 hover:border-kellenberg-maroon'
+                        ? 'border-kellenberg-royal bg-kellenberg-royal text-white'
+                        : 'border-gray-300 text-gray-700 hover:border-kellenberg-royal'
                     }`}
                   >
                     Student
@@ -124,8 +124,8 @@ export default function Signup() {
                     onClick={() => setFormData({ ...formData, userType: 'moderator' })}
                     className={`p-3 rounded-lg border-2 font-medium transition-colors ${
                       formData.userType === 'moderator'
-                        ? 'border-kellenberg-maroon bg-kellenberg-maroon text-white'
-                        : 'border-gray-300 text-gray-700 hover:border-kellenberg-maroon'
+                        ? 'border-kellenberg-royal bg-kellenberg-royal text-white'
+                        : 'border-gray-300 text-gray-700 hover:border-kellenberg-royal'
                     }`}
                   >
                     Moderator
@@ -173,7 +173,7 @@ export default function Signup() {
                     required
                     value={formData.grade}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-kellenberg-maroon focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-kellenberg-royal focus:border-transparent"
                   >
                     <option value="">Select grade</option>
                     <option value="9">9th Grade</option>
@@ -219,7 +219,7 @@ export default function Signup() {
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
                 Already have an account?{' '}
-                <Link to="/login" className="text-kellenberg-maroon font-medium hover:underline">
+                <Link to="/login" className="text-kellenberg-royal font-medium hover:underline">
                   Sign in
                 </Link>
               </p>

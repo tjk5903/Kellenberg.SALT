@@ -1,9 +1,25 @@
 import { supabase } from '../lib/supabase'
 
+// Helper to convert datetime-local string to ISO string with timezone
+const formatDateForDatabase = (dateString) => {
+  if (!dateString) return dateString
+  // Create a date object from the local datetime string
+  const date = new Date(dateString)
+  // Convert to ISO string which includes timezone
+  return date.toISOString()
+}
+
 export const createEvent = async (eventData) => {
+  // Format the dates to include timezone information
+  const formattedData = {
+    ...eventData,
+    start_date: formatDateForDatabase(eventData.start_date),
+    end_date: formatDateForDatabase(eventData.end_date)
+  }
+  
   const { data, error } = await supabase
     .from('events')
-    .insert([eventData])
+    .insert([formattedData])
     .select()
     .single()
 
@@ -11,9 +27,16 @@ export const createEvent = async (eventData) => {
 }
 
 export const updateEvent = async (eventId, eventData) => {
+  // Format the dates to include timezone information
+  const formattedData = {
+    ...eventData,
+    start_date: formatDateForDatabase(eventData.start_date),
+    end_date: formatDateForDatabase(eventData.end_date)
+  }
+  
   const { data, error } = await supabase
     .from('events')
-    .update(eventData)
+    .update(formattedData)
     .eq('id', eventId)
     .select()
     .single()

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { X, Download, Check, XCircle } from 'lucide-react'
 import { useEventSignups } from '../hooks/useEvents'
 import { updateSignupStatus } from '../utils/eventHelpers'
@@ -64,11 +65,18 @@ export default function ViewSignupsModal({ event, onClose, onUpdate }) {
     'Not Needed': signups.filter(s => s.status === 'Not Needed').length,
   }
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+  return createPortal(
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 overflow-y-auto" 
+      style={{ zIndex: 9999 }}
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white rounded-xl shadow-2xl max-w-4xl w-full my-8 max-h-[85vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center rounded-t-xl bg-white">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">{event.title}</h2>
             <p className="text-sm text-gray-600 mt-1">
@@ -114,10 +122,10 @@ export default function ViewSignupsModal({ event, onClose, onUpdate }) {
         </div>
 
         {/* Signups List */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="overflow-y-auto p-6" style={{ maxHeight: '60vh' }}>
           {loading ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-kellenberg-maroon mx-auto"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-kellenberg-royal mx-auto"></div>
               <p className="mt-4 text-gray-600">Loading signups...</p>
             </div>
           ) : signups.length === 0 ? (
@@ -177,7 +185,8 @@ export default function ViewSignupsModal({ event, onClose, onUpdate }) {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

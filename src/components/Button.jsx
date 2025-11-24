@@ -13,8 +13,8 @@ export default function Button({
   const baseStyles = 'font-medium rounded-lg transition-all duration-200 inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2'
   
   const variants = {
-    primary: 'bg-kellenberg-maroon text-white hover:bg-kellenberg-maroon/90 focus:ring-kellenberg-maroon disabled:bg-gray-300 disabled:cursor-not-allowed',
-    secondary: 'bg-white text-kellenberg-maroon border-2 border-kellenberg-maroon hover:bg-kellenberg-maroon hover:text-white focus:ring-kellenberg-maroon disabled:opacity-50 disabled:cursor-not-allowed',
+    primary: 'bg-kellenberg-royal text-white hover:bg-kellenberg-royal/90 focus:ring-kellenberg-royal disabled:bg-gray-300 disabled:cursor-not-allowed',
+    secondary: 'bg-white text-kellenberg-royal border-2 border-kellenberg-royal hover:bg-kellenberg-royal hover:text-white focus:ring-kellenberg-royal disabled:opacity-50 disabled:cursor-not-allowed',
     success: 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 disabled:bg-gray-300 disabled:cursor-not-allowed',
     danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 disabled:bg-gray-300 disabled:cursor-not-allowed',
     ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed',

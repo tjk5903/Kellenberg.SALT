@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Calendar, MapPin, Clock, XCircle } from 'lucide-react'
-import { formatDate, formatTime, isEventPast, getStatusColor, getStatusIcon } from '../utils/formatters'
+import { formatDate, formatTimeRange, isEventPast, getStatusColor, getStatusIcon } from '../utils/formatters'
 import { cancelEventSignup } from '../utils/eventHelpers'
 import Button from './Button'
 import Card, { CardBody, CardFooter } from './Card'
@@ -33,7 +33,7 @@ export default function StudentSignupCard({ signup, onCancelSuccess }) {
     }
   }
 
-  const isPast = isEventPast(event.date)
+  const isPast = isEventPast(event.start_date || event.date)
   const canCancel = !isPast && signup.status === 'Pending'
 
   return (
@@ -53,18 +53,18 @@ export default function StudentSignupCard({ signup, onCancelSuccess }) {
 
             <div className="space-y-1">
               <div className="flex items-center text-gray-700 text-sm">
-                <Calendar className="w-4 h-4 mr-2 text-kellenberg-maroon" />
-                <span>{formatDate(event.date)}</span>
-                {event.date && (
-                  <>
-                    <Clock className="w-4 h-4 ml-3 mr-2 text-kellenberg-maroon" />
-                    <span>{formatTime(event.date)}</span>
-                  </>
+              <Calendar className="w-4 h-4 mr-2 text-kellenberg-royal" />
+              <span>{formatDate(event.start_date || event.date)}</span>
+              {(event.start_date || event.date) && event.end_date && (
+                <>
+                  <Clock className="w-4 h-4 ml-3 mr-2 text-kellenberg-royal" />
+                  <span>{formatTimeRange(event.start_date || event.date, event.end_date)}</span>
+                </>
                 )}
               </div>
 
               <div className="flex items-center text-gray-700 text-sm">
-                <MapPin className="w-4 h-4 mr-2 text-kellenberg-maroon" />
+                <MapPin className="w-4 h-4 mr-2 text-kellenberg-royal" />
                 <span>{event.location}</span>
               </div>
             </div>
