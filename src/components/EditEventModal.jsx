@@ -25,6 +25,11 @@ export default function EditEventModal({ event, onClose, onSuccess }) {
     start_date: formatDateForInput(event.start_date || event.date),
     end_date: formatDateForInput(event.end_date),
     capacity: event.capacity || '',
+    hours: event.hours || '2.0',
+    dress_code: event.dress_code || '',
+    roles: event.roles || '',
+    check_in_instructions: event.check_in_instructions || '',
+    students_needed: event.students_needed || '',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -49,6 +54,11 @@ export default function EditEventModal({ event, onClose, onSuccess }) {
         start_date: formData.start_date,
         end_date: formData.end_date,
         capacity: formData.capacity ? parseInt(formData.capacity) : null,
+        hours: formData.hours ? parseFloat(formData.hours) : 2.0,
+        dress_code: formData.dress_code || null,
+        roles: formData.roles || null,
+        check_in_instructions: formData.check_in_instructions || null,
+        students_needed: formData.students_needed ? parseInt(formData.students_needed) : null,
       }
 
       const { error: updateError } = await updateEvent(event.id, eventData)
@@ -67,16 +77,16 @@ export default function EditEventModal({ event, onClose, onSuccess }) {
 
   return createPortal(
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 overflow-y-auto" 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" 
       style={{ zIndex: 9999 }}
       onClick={onClose}
     >
       <div 
-        className="bg-white rounded-xl shadow-2xl max-w-md w-full my-8"
+        className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white rounded-t-xl">
+        {/* Header - Fixed */}
+        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-white rounded-t-xl flex-shrink-0">
           <h2 className="text-2xl font-bold text-gray-900">Edit Event</h2>
           <button
             onClick={onClose}
@@ -86,8 +96,9 @@ export default function EditEventModal({ event, onClose, onSuccess }) {
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        {/* Form - Scrollable */}
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
+          <div className="p-6 space-y-4">
           {error && (
             <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
               {error}
@@ -155,8 +166,68 @@ export default function EditEventModal({ event, onClose, onSuccess }) {
             placeholder="Maximum number of students"
           />
 
-          {/* Actions */}
-          <div className="flex gap-3 pt-4">
+          <Input
+            label="Hours Credit"
+            name="hours"
+            type="number"
+            step="0.5"
+            min="0.5"
+            required
+            value={formData.hours}
+            onChange={handleChange}
+            placeholder="2.0"
+          />
+
+          <Input
+            label="Students Needed (Optional)"
+            name="students_needed"
+            type="number"
+            min="1"
+            value={formData.students_needed}
+            onChange={handleChange}
+            placeholder="Number of students needed"
+          />
+
+          <Input
+            label="Dress Code (Optional)"
+            name="dress_code"
+            value={formData.dress_code}
+            onChange={handleChange}
+            placeholder="e.g., Full uniform, Business casual"
+          />
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Roles/Responsibilities (Optional)
+            </label>
+            <textarea
+              name="roles"
+              value={formData.roles}
+              onChange={handleChange}
+              rows={2}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-kellenberg-royal focus:border-transparent"
+              placeholder="Describe roles and responsibilities..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Check-In Instructions (Optional)
+            </label>
+            <textarea
+              name="check_in_instructions"
+              value={formData.check_in_instructions}
+              onChange={handleChange}
+              rows={2}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-kellenberg-royal focus:border-transparent"
+              placeholder="Where and when to check in..."
+            />
+          </div>
+
+          </div>
+
+          {/* Actions - Fixed at bottom */}
+          <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex gap-3">
             <Button
               type="button"
               variant="ghost"

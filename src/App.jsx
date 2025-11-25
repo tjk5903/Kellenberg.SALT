@@ -15,6 +15,7 @@ import AllSignupsPage from './pages/AllSignupsPage'
 import ApprovedSignupsPage from './pages/ApprovedSignupsPage'
 import PendingSignupsPage from './pages/PendingSignupsPage'
 import StudentCalendarPage from './pages/StudentCalendarPage'
+import StudentHoursPage from './pages/StudentHoursPage'
 
 function RootRedirect() {
   const { user, userRole, loading } = useAuth()
@@ -98,6 +99,14 @@ function App() {
             element={
               <ProtectedRoute requiredRole="student">
                 <StudentCalendarPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/hours"
+            element={
+              <ProtectedRoute requiredRole="student">
+                <StudentHoursPage />
               </ProtectedRoute>
             }
           />

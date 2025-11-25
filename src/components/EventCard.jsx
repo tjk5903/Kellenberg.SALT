@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Calendar, MapPin, Users, Clock } from 'lucide-react'
-import { formatDate, formatTimeRange, isEventPast, getStatusColor } from '../utils/formatters'
+import { Calendar, MapPin, Users, Clock, Award, Shirt } from 'lucide-react'
+import { formatDate, formatTimeRange, formatHours, isEventPast, getStatusColor } from '../utils/formatters'
 import { signUpForEvent, checkExistingSignup, getEventSignupCount } from '../utils/eventHelpers'
 import Button from './Button'
 import Card, { CardBody, CardFooter } from './Card'
@@ -92,6 +92,34 @@ export default function EventCard({ event, studentId, onSignupSuccess }) {
                   {signupCount} / {event.capacity} signed up
                   {isFull && <span className="text-red-600 ml-2 font-medium">FULL</span>}
                 </span>
+              </div>
+            )}
+
+            {event.hours && (
+              <div className="flex items-center text-gray-700 text-sm">
+                <Award className="w-4 h-4 mr-2 text-kellenberg-gold" />
+                <span className="font-medium text-kellenberg-gold">{formatHours(event.hours)}</span>
+              </div>
+            )}
+
+            {event.dress_code && (
+              <div className="flex items-center text-gray-700 text-sm">
+                <Shirt className="w-4 h-4 mr-2 text-kellenberg-royal" />
+                <span>{event.dress_code}</span>
+              </div>
+            )}
+
+            {event.roles && (
+              <div className="mt-2 p-2 bg-blue-50 rounded-lg text-sm">
+                <p className="font-semibold text-kellenberg-royal mb-1">Roles:</p>
+                <p className="text-gray-700">{event.roles}</p>
+              </div>
+            )}
+
+            {event.check_in_instructions && (
+              <div className="mt-2 p-2 bg-kellenberg-gold/10 rounded-lg text-sm">
+                <p className="font-semibold text-kellenberg-royal mb-1">Check-In:</p>
+                <p className="text-gray-700">{event.check_in_instructions}</p>
               </div>
             )}
 

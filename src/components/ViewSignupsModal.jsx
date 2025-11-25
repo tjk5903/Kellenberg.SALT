@@ -1,15 +1,19 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { X, Download, Check, XCircle } from 'lucide-react'
+import { X, Download, Check, XCircle, UserCheck, UserX, Clock } from 'lucide-react'
 import { useEventSignups } from '../hooks/useEvents'
 import { updateSignupStatus } from '../utils/eventHelpers'
-import { getStatusColor, getStatusIcon } from '../utils/formatters'
+import { getStatusColor, getStatusIcon, formatHours } from '../utils/formatters'
+import { checkInStudent, markAttended, markNoShow } from '../utils/attendanceHelpers'
 import Button from './Button'
 
 export default function ViewSignupsModal({ event, onClose, onUpdate }) {
   const { signups, loading, error, refetch } = useEventSignups(event.id)
   const [updatingStatus, setUpdatingStatus] = useState({})
   const [statusFilter, setStatusFilter] = useState('All') // 'All', 'Pending', 'Approved'
+  const [processingAttendance, setProcessingAttendance] = useState({})
+  
+  const isPastEvent = new Date(event.end_date || event.date) < new Date()
 
   const handleStatusUpdate = async (signupId, newStatus) => {
     setUpdatingStatus(prev => ({ ...prev, [signupId]: true }))
@@ -27,6 +31,59 @@ export default function ViewSignupsModal({ event, onClose, onUpdate }) {
       alert('Failed to update status')
     } finally {
       setUpdatingStatus(prev => ({ ...prev, [signupId]: false }))
+    }
+  }
+
+  const handleCheckIn = async (signupId) => {
+    setProcessingAttendance(prev => ({ ...prev, [signupId]: true }))
+    try {
+      const { error } = await checkInStudent(signupId)
+      if (error) {
+        alert('Failed to check in student: ' + error.message)
+      } else {
+        refetch()
+      }
+    } catch (err) {
+      alert('Failed to check in student')
+    } finally {
+      setProcessingAttendance(prev => ({ ...prev, [signupId]: false }))
+    }
+  }
+
+  const handleMarkAttended = async (signupId) => {
+    setProcessingAttendance(prev => ({ ...prev, [signupId]: true }))
+    try {
+      const { error } = await markAttended(signupId)
+      if (error) {
+        alert('Failed to mark as attended: ' + error.message)
+      } else {
+        refetch()
+        onUpdate()
+      }
+    } catch (err) {
+      alert('Failed to mark as attended')
+    } finally {
+      setProcessingAttendance(prev => ({ ...prev, [signupId]: false }))
+    }
+  }
+
+  const handleMarkNoShow = async (signupId) => {
+    if (!confirm('Mark as no-show? This will deduct half of the event hours from the student.')) {
+      return
+    }
+    setProcessingAttendance(prev => ({ ...prev, [signupId]: true }))
+    try {
+      const { error } = await markNoShow(signupId)
+      if (error) {
+        alert('Failed to mark as no-show: ' + error.message)
+      } else {
+        refetch()
+        onUpdate()
+      }
+    } catch (err) {
+      alert('Failed to mark as no-show')
+    } finally {
+      setProcessingAttendance(prev => ({ ...prev, [signupId]: false }))
     }
   }
 
@@ -89,6 +146,7 @@ export default function ViewSignupsModal({ event, onClose, onUpdate }) {
             <h2 className="text-2xl font-bold text-gray-900">{event.title}</h2>
             <p className="text-sm text-gray-600 mt-1">
               {signups.length} total signup{signups.length !== 1 ? 's' : ''}
+              {event.hours && <span className="ml-2 text-kellenberg-gold font-semibold">• {formatHours(event.hours)}</span>}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -201,14 +259,38 @@ export default function ViewSignupsModal({ event, onClose, onUpdate }) {
                           <span>Class of {signup.students.registration_year}</span>
                           <span>Signed up: {new Date(signup.created_at).toLocaleDateString()}</span>
                         </div>
+                        
+                        {/* Attendance Info */}
+                        {signup.checked_in_at && (
+                          <p className="text-xs text-green-600 font-medium mt-2 flex items-center">
+                            <Clock className="w-3 h-3 mr-1" />
+                            Checked in: {new Date(signup.checked_in_at).toLocaleString()}
+                          </p>
+                        )}
+                        {signup.attended === true && (
+                          <p className="text-xs text-green-600 font-semibold mt-1">
+                            ✓ Attended • +{formatHours(event.hours)}
+                          </p>
+                        )}
+                        {signup.attended === false && (
+                          <p className="text-xs text-red-600 font-semibold mt-1">
+                            ✗ Did not attend
+                          </p>
+                        )}
+                        {signup.status === 'No-Show' && (
+                          <p className="text-xs text-red-600 font-semibold mt-1">
+                            No-Show • -{formatHours((event.hours || 0) / 2)}
+                          </p>
+                        )}
                       </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(signup.status)}`}>
                         {getStatusIcon(signup.status)} {signup.status}
                       </span>
 
-                      {signup.status === 'Pending' && (
+                      {/* Approval Buttons - only for pending */}
+                      {signup.status === 'Pending' && !isPastEvent && (
                         <div className="flex gap-1">
                           <button
                             onClick={() => handleStatusUpdate(signup.id, 'Approved')}
@@ -225,6 +307,43 @@ export default function ViewSignupsModal({ event, onClose, onUpdate }) {
                             title="Mark as Not Needed"
                           >
                             <XCircle className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Check-in Button - for approved students on event day */}
+                      {signup.status === 'Approved' && !signup.checked_in_at && !isPastEvent && (
+                        <button
+                          onClick={() => handleCheckIn(signup.id)}
+                          disabled={processingAttendance[signup.id]}
+                          className="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1"
+                          title="Check In"
+                        >
+                          <UserCheck className="w-4 h-4" />
+                          Check In
+                        </button>
+                      )}
+
+                      {/* Attendance Buttons - after event for approved students */}
+                      {signup.status === 'Approved' && isPastEvent && signup.attended === null && (
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => handleMarkAttended(signup.id)}
+                            disabled={processingAttendance[signup.id]}
+                            className="px-3 py-1.5 text-sm font-medium text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1"
+                            title="Mark Attended"
+                          >
+                            <UserCheck className="w-4 h-4" />
+                            Attended
+                          </button>
+                          <button
+                            onClick={() => handleMarkNoShow(signup.id)}
+                            disabled={processingAttendance[signup.id]}
+                            className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1"
+                            title="Mark No-Show"
+                          >
+                            <UserX className="w-4 h-4" />
+                            No-Show
                           </button>
                         </div>
                       )}

@@ -5,14 +5,27 @@ import { useEvents, useStudentEventSignups } from '../hooks/useEvents'
 import Layout from '../components/Layout'
 import EventCard from '../components/EventCard'
 import StudentSignupCard from '../components/StudentSignupCard'
-import { Calendar, Clock, Check, CalendarDays } from 'lucide-react'
+import StudentAgreementModal from '../components/StudentAgreementModal'
+import { Calendar, Clock, Check, CalendarDays, Award, TrendingUp } from 'lucide-react'
+import { formatHours } from '../utils/formatters'
 
 export default function StudentDashboard() {
   const navigate = useNavigate()
-  const { userProfile } = useAuth()
+  const { userProfile, needsAgreement, setNeedsAgreement, refreshProfile } = useAuth()
   const { events, loading: eventsLoading, refetch: refetchEvents } = useEvents()
   const { signups, loading: signupsLoading, refetch: refetchSignups } = useStudentEventSignups(userProfile?.id)
   const [activeTab, setActiveTab] = useState('available') // 'available' or 'my-events'
+
+  const handleAgreementAccepted = () => {
+    setNeedsAgreement(false)
+    refreshProfile()
+  }
+
+  const totalHours = userProfile?.total_hours || 0
+  const hoursGoal = 20
+  const hoursProgress = Math.min((totalHours / hoursGoal) * 100, 100)
+  const hoursColor = totalHours >= hoursGoal ? 'text-green-600' : totalHours >= hoursGoal * 0.5 ? 'text-kellenberg-gold' : 'text-red-600'
+  const progressBarColor = totalHours >= hoursGoal ? 'bg-green-500' : totalHours >= hoursGoal * 0.5 ? 'bg-kellenberg-gold' : 'bg-red-500'
 
   const handleSignupSuccess = () => {
     refetchEvents()
@@ -27,7 +40,14 @@ export default function StudentDashboard() {
   })
 
   return (
-    <Layout>
+    <>
+      {needsAgreement && userProfile?.id && (
+        <StudentAgreementModal 
+          studentId={userProfile.id}
+          onAccepted={handleAgreementAccepted}
+        />
+      )}
+      <Layout>
       <div className="space-y-6">
         {/* Welcome Section */}
         <div className="bg-gradient-to-r from-kellenberg-royal via-blue-700 to-white rounded-xl shadow-2xl p-8">
@@ -51,7 +71,47 @@ export default function StudentDashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {/* Hours Progress Card */}
+          <div 
+            onClick={() => navigate('/student/hours')}
+            className="bg-white rounded-xl shadow-xl p-6 border-l-4 border-kellenberg-gold hover:shadow-2xl transition-all cursor-pointer hover:scale-105 group"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-gray-600 text-sm font-medium uppercase tracking-wide">Service Hours</p>
+                <p className={`text-4xl font-bold ${hoursColor}`}>
+                  {totalHours.toFixed(1)}
+                </p>
+                <p className="text-xs text-gray-600 font-medium mt-1">of {hoursGoal} required</p>
+                <p className="text-xs text-kellenberg-gold font-semibold mt-1 group-hover:underline">
+                  Click to view breakdown →
+                </p>
+              </div>
+              <div className="bg-kellenberg-gold/10 p-3 rounded-full">
+                <Award className="w-10 h-10 text-kellenberg-gold" />
+              </div>
+            </div>
+            {/* Progress Bar */}
+            <div className="relative w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+              <div 
+                className={`${progressBarColor} h-full rounded-full transition-all duration-500`}
+                style={{ width: `${hoursProgress}%` }}
+              />
+            </div>
+            <div className="flex justify-between mt-2 text-xs text-gray-600">
+              <span>0</span>
+              <span className="font-semibold">{hoursProgress.toFixed(0)}%</span>
+              <span>{hoursGoal}</span>
+            </div>
+            {totalHours >= hoursGoal && (
+              <div className="mt-3 flex items-center justify-center text-green-600 text-sm font-semibold">
+                <TrendingUp className="w-4 h-4 mr-1" />
+                Goal Complete!
+              </div>
+            )}
+          </div>
+
           <div 
             onClick={() => navigate('/student/all-signups')}
             className="bg-white rounded-xl shadow-xl p-6 border-l-4 border-kellenberg-royal hover:shadow-2xl transition-all cursor-pointer hover:scale-105 group"
@@ -199,6 +259,7 @@ export default function StudentDashboard() {
         </div>
       </div>
     </Layout>
+    </>
   )
 }
 

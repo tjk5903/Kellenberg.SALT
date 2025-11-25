@@ -85,8 +85,18 @@ export const getStatusIcon = (status) => {
       return '⏳'
     case 'Not Needed':
       return '—'
+    case 'No-Show':
+      return '✗'
     default:
       return '?'
   }
+}
+
+export const formatHours = (hours) => {
+  if (hours === null || hours === undefined) return '0 hours'
+  const numHours = parseFloat(hours)
+  if (isNaN(numHours)) return '0 hours'
+  if (numHours === 1) return '1 hour'
+  return `${numHours.toFixed(1)} hours`
 }
 

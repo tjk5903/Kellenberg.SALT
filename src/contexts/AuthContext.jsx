@@ -16,6 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [userProfile, setUserProfile] = useState(null)
   const [userRole, setUserRole] = useState(null) // 'student' or 'moderator'
   const [loading, setLoading] = useState(true)
+  const [needsAgreement, setNeedsAgreement] = useState(false)
 
   useEffect(() => {
     // Check active sessions and sets the user
@@ -36,6 +37,7 @@ export const AuthProvider = ({ children }) => {
       } else {
         setUserProfile(null)
         setUserRole(null)
+        setNeedsAgreement(false)
         setLoading(false)
       }
     })
@@ -55,6 +57,12 @@ export const AuthProvider = ({ children }) => {
       if (studentData && !studentError) {
         setUserProfile(studentData)
         setUserRole('student')
+        // Check if student needs to accept agreement
+        if (studentData.agreed_to_terms === false || studentData.agreed_to_terms === null) {
+          setNeedsAgreement(true)
+        } else {
+          setNeedsAgreement(false)
+        }
         setLoading(false)
         return
       }
@@ -106,14 +114,24 @@ export const AuthProvider = ({ children }) => {
     return { error }
   }
 
+  const resetPassword = async (email) => {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    return { data, error }
+  }
+
   const value = {
     user,
     userProfile,
     userRole,
     loading,
+    needsAgreement,
+    setNeedsAgreement,
     signIn,
     signUp,
     signOut,
+    resetPassword,
     refreshProfile: () => user && fetchUserProfile(user.id),
   }
 

@@ -38,7 +38,7 @@ CREATE TABLE students (
   first_name TEXT NOT NULL,
   last_name TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,
-  grade INTEGER CHECK (grade >= 9 AND grade <= 12),
+  grade INTEGER CHECK (grade >= 6 AND grade <= 12),
   registration_year INTEGER,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

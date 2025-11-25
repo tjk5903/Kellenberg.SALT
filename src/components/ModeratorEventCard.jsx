@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import { Calendar, MapPin, Users, Clock, Edit, Trash2, Eye } from 'lucide-react'
-import { formatDate, formatTimeRange } from '../utils/formatters'
+import { useState, useEffect } from 'react'
+import { Calendar, MapPin, Users, Clock, Edit, Trash2, Eye, Award, Shirt } from 'lucide-react'
+import { formatDate, formatTimeRange, formatHours } from '../utils/formatters'
+import { getEventSignupCount } from '../utils/eventHelpers'
 import { deleteEvent } from '../utils/eventHelpers'
 import Button from './Button'
 import Card, { CardBody, CardFooter } from './Card'
@@ -15,6 +16,16 @@ export default function ModeratorEventCard({ event, onUpdate, isPast = false }) 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState(null)
+  const [signupCount, setSignupCount] = useState(0)
+
+  useEffect(() => {
+    fetchSignupCount()
+  }, [event.id])
+
+  const fetchSignupCount = async () => {
+    const { count } = await getEventSignupCount(event.id)
+    setSignupCount(count || 0)
+  }
 
   const handleDelete = async () => {
     setShowDeleteConfirm(false)
@@ -69,10 +80,28 @@ export default function ModeratorEventCard({ event, onUpdate, isPast = false }) 
                   <span>{event.location}</span>
                 </div>
 
-                {event.capacity && (
+                {(event.students_needed || event.capacity) && (
                   <div className="flex items-center text-gray-700 text-sm">
                     <Users className="w-4 h-4 mr-2 text-kellenberg-royal" />
-                    <span>Capacity: {event.capacity} students</span>
+                    <span>
+                      {signupCount} signed up
+                      {event.students_needed && ` / ${event.students_needed} needed`}
+                      {event.capacity && ` (max: ${event.capacity})`}
+                    </span>
+                  </div>
+                )}
+
+                {event.hours && (
+                  <div className="flex items-center text-gray-700 text-sm">
+                    <Award className="w-4 h-4 mr-2 text-kellenberg-gold" />
+                    <span className="font-medium text-kellenberg-gold">{formatHours(event.hours)}</span>
+                  </div>
+                )}
+
+                {event.dress_code && (
+                  <div className="flex items-center text-gray-700 text-sm">
+                    <Shirt className="w-4 h-4 mr-2 text-kellenberg-royal" />
+                    <span>{event.dress_code}</span>
                   </div>
                 )}
               </div>

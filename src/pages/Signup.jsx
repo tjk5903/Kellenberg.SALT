@@ -99,11 +99,11 @@ export default function Signup() {
       <div className="max-w-md w-full space-y-8">
         {/* Logo and Title */}
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-kellenberg-gold rounded-full mb-4">
-            <span className="text-4xl font-bold text-kellenberg-royal">S</span>
-          </div>
-          <h2 className="text-4xl font-bold text-white mb-2">SALT</h2>
-          <p className="text-kellenberg-gold font-medium">Create Your Account</p>
+          <h2 className="text-5xl font-bold text-white mb-3">S.A.L.T.</h2>
+          <p className="text-kellenberg-gold font-medium text-lg">
+            Service • Allegiance • Leadership • Teamwork
+          </p>
+          <p className="text-white/80 mt-2 mb-4">Create Your Account</p>
         </div>
 
         {/* Signup Form */}
@@ -191,6 +191,9 @@ export default function Signup() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-kellenberg-royal focus:border-transparent"
                     >
                       <option value="">Select grade</option>
+                      <option value="6">6th Grade</option>
+                      <option value="7">7th Grade</option>
+                      <option value="8">8th Grade</option>
                       <option value="9">9th Grade</option>
                       <option value="10">10th Grade</option>
                       <option value="11">11th Grade</option>
