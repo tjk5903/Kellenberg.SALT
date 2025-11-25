@@ -47,7 +47,7 @@ export default function ModeratorDashboard() {
             <div className="flex flex-col gap-3">
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="bg-kellenberg-gold text-kellenberg-royal hover:bg-kellenberg-royal hover:text-white font-bold text-lg px-6 py-3 shadow-xl border-2 border-kellenberg-royal rounded-lg transition-all duration-300 inline-flex items-center justify-center"
+                className="bg-white text-kellenberg-royal hover:bg-kellenberg-royal hover:text-white font-bold text-lg px-6 py-3 shadow-xl border-2 border-kellenberg-royal rounded-lg transition-all duration-300 inline-flex items-center justify-center"
               >
                 <Plus className="w-5 h-5 mr-2" />
                 Create Event
@@ -73,7 +73,7 @@ export default function ModeratorDashboard() {
               <div>
                 <p className="text-gray-600 text-sm font-medium uppercase tracking-wide">Total Events</p>
                 <p className="text-4xl font-bold text-kellenberg-royal">{events.length}</p>
-                <p className="text-xs text-kellenberg-gold font-semibold mt-1 group-hover:underline">
+                <p className="text-xs text-kellenberg-royal font-semibold mt-1 group-hover:underline">
                   Click to view all →
                 </p>
               </div>
@@ -91,7 +91,7 @@ export default function ModeratorDashboard() {
               <div>
                 <p className="text-gray-600 text-sm font-medium uppercase tracking-wide">Upcoming</p>
                 <p className="text-4xl font-bold text-kellenberg-royal">{upcomingEvents.length}</p>
-                <p className="text-xs text-kellenberg-gold font-semibold mt-1 group-hover:underline">
+                <p className="text-xs text-kellenberg-royal font-semibold mt-1 group-hover:underline">
                   Click to view all →
                 </p>
               </div>
@@ -109,7 +109,7 @@ export default function ModeratorDashboard() {
               <div>
                 <p className="text-gray-600 text-sm font-medium uppercase tracking-wide">Past Events</p>
                 <p className="text-4xl font-bold text-kellenberg-royal">{pastEvents.length}</p>
-                <p className="text-xs text-kellenberg-gold font-semibold mt-1 group-hover:underline">
+                <p className="text-xs text-kellenberg-royal font-semibold mt-1 group-hover:underline">
                   Click to view all →
                 </p>
               </div>

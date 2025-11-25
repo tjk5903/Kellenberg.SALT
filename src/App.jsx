@@ -11,6 +11,10 @@ import PastEventsPage from './pages/PastEventsPage'
 import ProfilePage from './pages/ProfilePage'
 import InfoPage from './pages/InfoPage'
 import CalendarPage from './pages/CalendarPage'
+import AllSignupsPage from './pages/AllSignupsPage'
+import ApprovedSignupsPage from './pages/ApprovedSignupsPage'
+import PendingSignupsPage from './pages/PendingSignupsPage'
+import StudentCalendarPage from './pages/StudentCalendarPage'
 
 function RootRedirect() {
   const { user, userRole, loading } = useAuth()
@@ -62,6 +66,38 @@ function App() {
             element={
               <ProtectedRoute requiredRole="student">
                 <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/all-signups"
+            element={
+              <ProtectedRoute requiredRole="student">
+                <AllSignupsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/approved-signups"
+            element={
+              <ProtectedRoute requiredRole="student">
+                <ApprovedSignupsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/pending-signups"
+            element={
+              <ProtectedRoute requiredRole="student">
+                <PendingSignupsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/calendar"
+            element={
+              <ProtectedRoute requiredRole="student">
+                <StudentCalendarPage />
               </ProtectedRoute>
             }
           />

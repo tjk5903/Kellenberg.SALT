@@ -134,13 +134,19 @@ export const useEventSignups = (eventId) => {
             last_name,
             email,
             grade,
-            registration_year
+            registration_year,
+            homeroom
           )
         `)
         .eq('event_id', eventId)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase error fetching signups:', error)
+        throw error
+      }
+      
+      console.log('Fetched signups data:', data)
       setSignups(data || [])
     } catch (err) {
       setError(err.message)

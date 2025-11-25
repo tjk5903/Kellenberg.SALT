@@ -96,6 +96,20 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
+                {userProfile?.homeroom && (
+                  <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                    <div className="bg-kellenberg-royal/10 p-3 rounded-full">
+                      <User className="w-6 h-6 text-kellenberg-royal" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Homeroom</p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        {userProfile?.homeroom}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
                   <div className="bg-kellenberg-royal/10 p-3 rounded-full">
                     <Calendar className="w-6 h-6 text-kellenberg-royal" />

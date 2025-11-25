@@ -7,8 +7,9 @@ import { getStatusColor, getStatusIcon } from '../utils/formatters'
 import Button from './Button'
 
 export default function ViewSignupsModal({ event, onClose, onUpdate }) {
-  const { signups, loading, refetch } = useEventSignups(event.id)
+  const { signups, loading, error, refetch } = useEventSignups(event.id)
   const [updatingStatus, setUpdatingStatus] = useState({})
+  const [statusFilter, setStatusFilter] = useState('All') // 'All', 'Pending', 'Approved'
 
   const handleStatusUpdate = async (signupId, newStatus) => {
     setUpdatingStatus(prev => ({ ...prev, [signupId]: true }))
@@ -31,13 +32,14 @@ export default function ViewSignupsModal({ event, onClose, onUpdate }) {
 
   const handleExport = () => {
     // Create CSV content
-    const headers = ['First Name', 'Last Name', 'Email', 'Grade', 'Registration Year', 'Status', 'Signup Date']
+    const headers = ['First Name', 'Last Name', 'Email', 'Grade', 'Homeroom', 'Registration Year', 'Status', 'Signup Date']
     const rows = signups.map(signup => [
-      signup.students.first_name,
-      signup.students.last_name,
-      signup.students.email,
-      signup.students.grade,
-      signup.students.registration_year,
+      signup.students?.first_name || 'N/A',
+      signup.students?.last_name || 'N/A',
+      signup.students?.email || 'N/A',
+      signup.students?.grade || 'N/A',
+      signup.students?.homeroom || 'N/A',
+      signup.students?.registration_year || 'N/A',
       signup.status,
       new Date(signup.created_at).toLocaleDateString()
     ])
@@ -60,10 +62,16 @@ export default function ViewSignupsModal({ event, onClose, onUpdate }) {
   }
 
   const statusCounts = {
+    All: signups.length,
     Pending: signups.filter(s => s.status === 'Pending').length,
     Approved: signups.filter(s => s.status === 'Approved').length,
     'Not Needed': signups.filter(s => s.status === 'Not Needed').length,
   }
+
+  // Filter signups based on selected status
+  const filteredSignups = statusFilter === 'All' 
+    ? signups 
+    : signups.filter(s => s.status === statusFilter)
 
   return createPortal(
     <div 
@@ -103,54 +111,97 @@ export default function ViewSignupsModal({ event, onClose, onUpdate }) {
           </div>
         </div>
 
-        {/* Status Summary */}
+        {/* Status Filters */}
         <div className="px-6 py-3 bg-gray-50 border-b border-gray-200">
-          <div className="flex gap-6 text-sm">
-            <div>
-              <span className="text-gray-600">Pending:</span>{' '}
-              <span className="font-semibold text-yellow-600">{statusCounts.Pending}</span>
-            </div>
-            <div>
-              <span className="text-gray-600">Approved:</span>{' '}
-              <span className="font-semibold text-green-600">{statusCounts.Approved}</span>
-            </div>
-            <div>
-              <span className="text-gray-600">Not Needed:</span>{' '}
-              <span className="font-semibold text-gray-600">{statusCounts['Not Needed']}</span>
-            </div>
+          <div className="flex gap-2 text-sm">
+            <button
+              onClick={() => setStatusFilter('All')}
+              className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                statusFilter === 'All'
+                  ? 'bg-kellenberg-royal text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              All ({statusCounts.All})
+            </button>
+            <button
+              onClick={() => setStatusFilter('Pending')}
+              className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                statusFilter === 'Pending'
+                  ? 'bg-yellow-500 text-white'
+                  : 'bg-white text-yellow-700 hover:bg-yellow-50'
+              }`}
+            >
+              Pending ({statusCounts.Pending})
+            </button>
+            <button
+              onClick={() => setStatusFilter('Approved')}
+              className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                statusFilter === 'Approved'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-white text-green-700 hover:bg-green-50'
+              }`}
+            >
+              Approved ({statusCounts.Approved})
+            </button>
           </div>
         </div>
 
         {/* Signups List */}
         <div className="overflow-y-auto p-6" style={{ maxHeight: '60vh' }}>
-          {loading ? (
+          {error ? (
+            <div className="text-center py-12">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+                <p className="font-semibold mb-2">Error loading signups</p>
+                <p className="text-sm">{error}</p>
+                <button 
+                  onClick={refetch}
+                  className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
+            </div>
+          ) : loading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-kellenberg-royal mx-auto"></div>
               <p className="mt-4 text-gray-600">Loading signups...</p>
             </div>
-          ) : signups.length === 0 ? (
+          ) : filteredSignups.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-600">No signups yet for this event.</p>
+              <p className="text-gray-600">
+                {signups.length === 0 
+                  ? 'No signups yet for this event.' 
+                  : `No ${statusFilter.toLowerCase()} signups.`}
+              </p>
             </div>
           ) : (
             <div className="space-y-3">
-              {signups.map(signup => (
-                <div
-                  key={signup.id}
-                  className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                >
-                  <div className="flex justify-between items-start gap-4">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">
-                        {signup.students.first_name} {signup.students.last_name}
-                      </h3>
-                      <p className="text-sm text-gray-600">{signup.students.email}</p>
-                      <div className="flex gap-4 mt-1 text-xs text-gray-500">
-                        <span>Grade {signup.students.grade}</span>
-                        <span>Class of {signup.students.registration_year}</span>
-                        <span>Signed up: {new Date(signup.created_at).toLocaleDateString()}</span>
+              {filteredSignups.map(signup => {
+                // Defensive check for student data
+                if (!signup.students) {
+                  console.error('Missing student data for signup:', signup.id)
+                  return null
+                }
+                
+                return (
+                  <div
+                    key={signup.id}
+                    className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex justify-between items-start gap-4">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900">
+                          {signup.students.first_name} {signup.students.last_name}
+                        </h3>
+                        <p className="text-sm text-gray-600">{signup.students.email}</p>
+                        <div className="flex gap-4 mt-1 text-xs text-gray-500">
+                          <span>Grade {signup.students.grade}</span>
+                          {signup.students.homeroom && <span>Homeroom {signup.students.homeroom}</span>}
+                          <span>Class of {signup.students.registration_year}</span>
+                          <span>Signed up: {new Date(signup.created_at).toLocaleDateString()}</span>
+                        </div>
                       </div>
-                    </div>
 
                     <div className="flex items-center gap-2">
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(signup.status)}`}>
@@ -180,7 +231,7 @@ export default function ViewSignupsModal({ event, onClose, onUpdate }) {
                     </div>
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
           )}
         </div>

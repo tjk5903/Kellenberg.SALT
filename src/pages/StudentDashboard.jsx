@@ -1,12 +1,14 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useEvents, useStudentEventSignups } from '../hooks/useEvents'
 import Layout from '../components/Layout'
 import EventCard from '../components/EventCard'
 import StudentSignupCard from '../components/StudentSignupCard'
-import { Calendar, Clock, MapPin } from 'lucide-react'
+import { Calendar, Clock, Check, CalendarDays } from 'lucide-react'
 
 export default function StudentDashboard() {
+  const navigate = useNavigate()
   const { userProfile } = useAuth()
   const { events, loading: eventsLoading, refetch: refetchEvents } = useEvents()
   const { signups, loading: signupsLoading, refetch: refetchSignups } = useStudentEventSignups(userProfile?.id)
@@ -17,63 +19,93 @@ export default function StudentDashboard() {
     refetchSignups()
   }
 
-  // Filter events that student hasn't signed up for yet
+  // Filter events that student hasn't signed up for yet and are not past events
   const availableEvents = events.filter(event => {
     const isSignedUp = signups.some(signup => signup.event_id === event.id)
-    return !isSignedUp
+    const isPastEvent = new Date(event.start_date || event.date) < new Date()
+    return !isSignedUp && !isPastEvent
   })
 
   return (
     <Layout>
       <div className="space-y-6">
         {/* Welcome Section */}
-        <div className="bg-gradient-to-r from-kellenberg-royal via-blue-800 to-kellenberg-royal rounded-xl shadow-2xl p-8 border-4 border-kellenberg-gold">
-          <h1 className="text-4xl font-bold mb-2 text-white drop-shadow-lg">
-            Welcome, {userProfile?.first_name}!
-          </h1>
-          <p className="text-kellenberg-gold text-lg font-semibold">
-            Explore service events and track your participation
-          </p>
+        <div className="bg-gradient-to-r from-kellenberg-royal via-blue-700 to-white rounded-xl shadow-2xl p-8">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl font-bold mb-2 text-white drop-shadow-lg">
+                Welcome, {userProfile?.first_name}!
+              </h1>
+              <p className="text-kellenberg-gold text-lg font-semibold drop-shadow">
+                Explore service events and track your participation
+              </p>
+            </div>
+            <button
+              onClick={() => navigate('/student/calendar')}
+              className="bg-white text-kellenberg-royal hover:bg-kellenberg-royal hover:text-white font-bold text-lg px-6 py-3 shadow-xl border-2 border-kellenberg-royal rounded-lg transition-all duration-300 inline-flex items-center justify-center"
+            >
+              <CalendarDays className="w-5 h-5 mr-2" />
+              Calendar View
+            </button>
+          </div>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-xl shadow-xl p-6 border-l-4 border-kellenberg-royal hover:shadow-2xl transition-shadow">
+          <div 
+            onClick={() => navigate('/student/all-signups')}
+            className="bg-white rounded-xl shadow-xl p-6 border-l-4 border-kellenberg-royal hover:shadow-2xl transition-all cursor-pointer hover:scale-105 group"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium uppercase tracking-wide">Total Signups</p>
                 <p className="text-4xl font-bold text-kellenberg-royal">{signups.length}</p>
+                <p className="text-xs text-kellenberg-royal font-semibold mt-1 group-hover:underline">
+                  Click to view all →
+                </p>
               </div>
-              <div className="bg-kellenberg-gold/10 p-3 rounded-full">
-                <Calendar className="w-10 h-10 text-kellenberg-gold" />
+              <div className="bg-kellenberg-royal/10 p-3 rounded-full">
+                <Calendar className="w-10 h-10 text-kellenberg-royal" />
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-xl shadow-xl p-6 border-l-4 border-green-500 hover:shadow-2xl transition-shadow">
+          <div 
+            onClick={() => navigate('/student/approved-signups')}
+            className="bg-white rounded-xl shadow-xl p-6 border-l-4 border-green-500 hover:shadow-2xl transition-all cursor-pointer hover:scale-105 group"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium uppercase tracking-wide">Approved</p>
                 <p className="text-4xl font-bold text-green-600">
                   {signups.filter(s => s.status === 'Approved').length}
                 </p>
+                <p className="text-xs text-green-600 font-semibold mt-1 group-hover:underline">
+                  Click to view all →
+                </p>
               </div>
               <div className="bg-green-100 p-3 rounded-full">
-                <Clock className="w-10 h-10 text-green-600" />
+                <Check className="w-10 h-10 text-green-600" />
               </div>
             </div>
           </div>
           
-          <div className="bg-white rounded-xl shadow-xl p-6 border-l-4 border-kellenberg-gold hover:shadow-2xl transition-shadow">
+          <div 
+            onClick={() => navigate('/student/pending-signups')}
+            className="bg-white rounded-xl shadow-xl p-6 border-l-4 border-kellenberg-gold hover:shadow-2xl transition-all cursor-pointer hover:scale-105 group"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium uppercase tracking-wide">Pending</p>
                 <p className="text-4xl font-bold text-kellenberg-gold">
                   {signups.filter(s => s.status === 'Pending').length}
                 </p>
+                <p className="text-xs text-kellenberg-gold font-semibold mt-1 group-hover:underline">
+                  Click to view all →
+                </p>
               </div>
               <div className="bg-kellenberg-gold/10 p-3 rounded-full">
-                <MapPin className="w-10 h-10 text-kellenberg-gold" />
+                <Clock className="w-10 h-10 text-kellenberg-gold" />
               </div>
             </div>
           </div>

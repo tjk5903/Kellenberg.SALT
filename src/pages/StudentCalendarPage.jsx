@@ -1,62 +1,46 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { useModeratorEvents } from '../hooks/useEvents'
+import { useEvents, useStudentEventSignups } from '../hooks/useEvents'
 import Layout from '../components/Layout'
-import { ArrowLeft, ChevronLeft, ChevronRight, Clock, MapPin, Plus, Edit, Trash2 } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight, Clock, MapPin, Users } from 'lucide-react'
 import Button from '../components/Button'
 import { formatTime } from '../utils/formatters'
-import CreateEventModal from '../components/CreateEventModal'
-import EditEventModal from '../components/EditEventModal'
-import ConfirmDialog from '../components/ConfirmDialog'
+import { signUpForEvent } from '../utils/eventHelpers'
 import Toast from '../components/Toast'
-import { deleteEvent } from '../utils/eventHelpers'
 
-export default function CalendarPage() {
+export default function StudentCalendarPage() {
   const navigate = useNavigate()
   const { userProfile } = useAuth()
-  const { events, loading, refetch } = useModeratorEvents(userProfile?.id)
+  const { events, loading } = useEvents()
+  const { signups, refetch: refetchSignups } = useStudentEventSignups(userProfile?.id)
   
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [selectedDayEvents, setSelectedDayEvents] = useState(null)
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [prefilledDate, setPrefilledDate] = useState(null)
   const [toast, setToast] = useState(null)
-  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [signingUp, setSigningUp] = useState(false)
 
   // Get calendar data for current month
   const calendarData = useMemo(() => {
     const year = currentDate.getFullYear()
     const month = currentDate.getMonth()
     
-    // First day of the month
     const firstDay = new Date(year, month, 1)
-    // Last day of the month
     const lastDay = new Date(year, month + 1, 0)
-    
-    // Get day of week for first day (0 = Sunday)
     const startingDayOfWeek = firstDay.getDay()
-    
-    // Total days in month
     const daysInMonth = lastDay.getDate()
     
-    // Create array of weeks
     const weeks = []
     let currentWeek = []
     
-    // Add empty cells for days before month starts
     for (let i = 0; i < startingDayOfWeek; i++) {
       currentWeek.push(null)
     }
     
-    // Add all days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day)
       
-      // Get events for this day
       const dayEvents = events.filter(event => {
         const eventDate = new Date(event.start_date || event.date)
         return eventDate.getFullYear() === year &&
@@ -66,14 +50,12 @@ export default function CalendarPage() {
       
       currentWeek.push({ date, day, events: dayEvents })
       
-      // If week is complete (7 days), add to weeks array
       if (currentWeek.length === 7) {
         weeks.push(currentWeek)
         currentWeek = []
       }
     }
     
-    // Add remaining empty cells to complete last week
     if (currentWeek.length > 0) {
       while (currentWeek.length < 7) {
         currentWeek.push(null)
@@ -107,53 +89,28 @@ export default function CalendarPage() {
            date.getFullYear() === today.getFullYear()
   }
 
-  const handleDateClick = (date) => {
-    // Format date for datetime-local input (YYYY-MM-DDTHH:mm)
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    const dateString = `${year}-${month}-${day}T09:00` // Default to 9 AM
-    setPrefilledDate(dateString)
-    setShowCreateModal(true)
+  const isSignedUp = (eventId) => {
+    return signups.some(signup => signup.event_id === eventId)
   }
 
-  const handleEventCreated = () => {
-    refetch()
-    setShowCreateModal(false)
-    setPrefilledDate(null)
-    setToast({ type: 'success', message: 'Event created successfully!' })
+  const isPastEvent = (event) => {
+    return new Date(event.start_date || event.date) < new Date()
   }
 
-  const handleEventUpdated = () => {
-    refetch()
-    setShowEditModal(false)
-    setSelectedEvent(null)
-    setToast({ type: 'success', message: 'Event updated successfully!' })
-  }
-
-  const handleDeleteEvent = async () => {
-    if (!selectedEvent) return
+  const handleSignUp = async () => {
+    if (!selectedEvent || !userProfile?.id) return
     
-    setDeleteLoading(true)
-    const { error } = await deleteEvent(selectedEvent.id)
-    setDeleteLoading(false)
+    setSigningUp(true)
+    const { error } = await signUpForEvent(userProfile.id, selectedEvent.id)
+    setSigningUp(false)
 
     if (error) {
-      setToast({ type: 'error', message: 'Failed to delete event' })
+      setToast({ type: 'error', message: 'Failed to sign up for event' })
     } else {
-      setToast({ type: 'success', message: 'Event deleted successfully!' })
-      refetch()
-      setShowDeleteConfirm(false)
+      setToast({ type: 'success', message: 'Successfully signed up for event!' })
+      refetchSignups()
       setSelectedEvent(null)
     }
-  }
-
-  const handleEditClick = () => {
-    setShowEditModal(true)
-  }
-
-  const handleDeleteClick = () => {
-    setShowDeleteConfirm(true)
   }
 
   if (loading) {
@@ -173,7 +130,7 @@ export default function CalendarPage() {
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
-            onClick={() => navigate('/moderator')}
+            onClick={() => navigate('/student')}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -183,26 +140,12 @@ export default function CalendarPage() {
 
         {/* Title Section */}
         <div className="bg-gradient-to-r from-kellenberg-royal via-blue-700 to-white rounded-xl shadow-2xl p-8">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-4xl font-bold mb-2 text-white drop-shadow-lg">
-                Calendar View
-              </h1>
-              <p className="text-kellenberg-gold text-lg font-semibold drop-shadow">
-                View your events in calendar format
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                setPrefilledDate(null)
-                setShowCreateModal(true)
-              }}
-              className="bg-white text-kellenberg-royal hover:bg-kellenberg-royal hover:text-white font-bold text-lg px-6 py-3 shadow-xl border-2 border-kellenberg-royal rounded-lg transition-all duration-300 inline-flex items-center"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Create Event
-            </button>
-          </div>
+          <h1 className="text-4xl font-bold mb-2 text-white drop-shadow-lg">
+            Calendar View
+          </h1>
+          <p className="text-kellenberg-gold text-lg font-semibold drop-shadow">
+            View all service events in calendar format
+          </p>
         </div>
 
         {/* Calendar */}
@@ -267,17 +210,15 @@ export default function CalendarPage() {
             <div className="grid grid-cols-7 gap-2">
               {calendarData.map((week, weekIndex) => (
                 week.map((dayData, dayIndex) => (
-                  <button
+                  <div
                     key={`${weekIndex}-${dayIndex}`}
-                    onClick={() => dayData && handleDateClick(dayData.date)}
-                    disabled={!dayData}
-                    className={`min-h-[120px] border rounded-lg p-2 text-left relative ${
+                    className={`min-h-[120px] border rounded-lg p-2 relative ${
                       dayData
                         ? isToday(dayData.date)
-                          ? 'bg-kellenberg-gold/10 border-kellenberg-gold hover:bg-kellenberg-gold/20 cursor-pointer'
-                          : 'bg-gray-50 border-gray-200 hover:border-kellenberg-royal/50 hover:bg-gray-100 cursor-pointer'
-                        : 'bg-gray-100 border-gray-200 cursor-default'
-                    } transition-colors`}
+                          ? 'bg-kellenberg-gold/10 border-kellenberg-gold'
+                          : 'bg-gray-50 border-gray-200'
+                        : 'bg-gray-100 border-gray-200'
+                    }`}
                   >
                     {dayData && (
                       <>
@@ -290,10 +231,7 @@ export default function CalendarPage() {
                           {dayData.events.slice(0, 2).map(event => (
                             <button
                               key={event.id}
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setSelectedEvent(event)
-                              }}
+                              onClick={() => setSelectedEvent(event)}
                               className="w-full text-left px-2 py-1 bg-kellenberg-gold/30 text-black rounded text-xs hover:bg-kellenberg-gold/50 transition-colors border border-kellenberg-gold"
                               title={event.title}
                             >
@@ -307,10 +245,7 @@ export default function CalendarPage() {
                           ))}
                           {dayData.events.length > 2 && (
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setSelectedDayEvents({ date: dayData.date, events: dayData.events })
-                              }}
+                              onClick={() => setSelectedDayEvents({ date: dayData.date, events: dayData.events })}
                               className="w-full text-xs text-kellenberg-royal font-semibold px-2 py-1 bg-kellenberg-royal/10 rounded border border-kellenberg-royal/30 hover:bg-kellenberg-royal/20 transition-colors"
                             >
                               +{dayData.events.length - 2} more
@@ -319,17 +254,16 @@ export default function CalendarPage() {
                         </div>
                       </>
                     )}
-                  </button>
+                  </div>
                 ))
               ))}
             </div>
           </div>
         </div>
-
       </div>
 
       {/* Event Details Modal */}
-      {selectedEvent && !showEditModal && (
+      {selectedEvent && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
           onClick={() => setSelectedEvent(null)}
@@ -368,28 +302,36 @@ export default function CalendarPage() {
               </div>
 
               {selectedEvent.capacity && (
-                <div>
-                  <p className="font-medium text-gray-900">Capacity</p>
-                  <p className="text-gray-700">{selectedEvent.capacity} students</p>
+                <div className="flex items-start gap-3">
+                  <Users className="w-5 h-5 text-kellenberg-royal mt-0.5" />
+                  <div>
+                    <p className="font-medium text-gray-900">Capacity</p>
+                    <p className="text-gray-700">{selectedEvent.capacity} students</p>
+                  </div>
                 </div>
               )}
             </div>
 
             <div className="flex gap-3">
-              <button
-                onClick={handleEditClick}
-                className="flex-1 bg-white text-kellenberg-royal border-2 border-kellenberg-royal hover:bg-kellenberg-royal hover:text-white font-medium px-4 py-2 rounded-lg transition-all duration-300 inline-flex items-center justify-center"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit
-              </button>
-              <button
-                onClick={handleDeleteClick}
-                className="flex-1 bg-red-600 text-white hover:bg-red-700 font-medium px-4 py-2 rounded-lg transition-colors inline-flex items-center justify-center"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete
-              </button>
+              {!isSignedUp(selectedEvent.id) && !isPastEvent(selectedEvent) ? (
+                <Button
+                  onClick={handleSignUp}
+                  variant="primary"
+                  fullWidth
+                  loading={signingUp}
+                  disabled={signingUp}
+                >
+                  Sign Up
+                </Button>
+              ) : isSignedUp(selectedEvent.id) ? (
+                <div className="flex-1 bg-green-100 text-green-700 font-medium px-4 py-2 rounded-lg text-center border-2 border-green-500">
+                  Already Signed Up ✓
+                </div>
+              ) : (
+                <div className="flex-1 bg-gray-100 text-gray-600 font-medium px-4 py-2 rounded-lg text-center">
+                  Event Passed
+                </div>
+              )}
               <Button
                 onClick={() => setSelectedEvent(null)}
                 variant="ghost"
@@ -400,42 +342,6 @@ export default function CalendarPage() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Create Event Modal */}
-      {showCreateModal && (
-        <CreateEventModal
-          onClose={() => {
-            setShowCreateModal(false)
-            setPrefilledDate(null)
-          }}
-          onSuccess={handleEventCreated}
-          moderatorId={userProfile?.id}
-          prefilledDate={prefilledDate}
-        />
-      )}
-
-      {/* Edit Event Modal */}
-      {showEditModal && selectedEvent && (
-        <EditEventModal
-          event={selectedEvent}
-          onClose={() => {
-            setShowEditModal(false)
-            setSelectedEvent(null)
-          }}
-          onSuccess={handleEventUpdated}
-        />
-      )}
-
-      {/* Delete Confirmation Dialog */}
-      {showDeleteConfirm && selectedEvent && (
-        <ConfirmDialog
-          title="Delete Event"
-          message={`Are you sure you want to delete "${selectedEvent.title}"? This action cannot be undone.`}
-          onConfirm={handleDeleteEvent}
-          onCancel={() => setShowDeleteConfirm(false)}
-          loading={deleteLoading}
-        />
       )}
 
       {/* Day Events Modal */}
@@ -483,6 +389,19 @@ export default function CalendarPage() {
                       </div>
                       <p className="text-gray-700 text-sm line-clamp-2">{event.description}</p>
                     </div>
+                    {isSignedUp(event.id) ? (
+                      <div className="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">
+                        Signed Up ✓
+                      </div>
+                    ) : isPastEvent(event) ? (
+                      <div className="bg-gray-100 text-gray-600 text-xs font-semibold px-3 py-1 rounded-full">
+                        Past
+                      </div>
+                    ) : (
+                      <div className="bg-kellenberg-gold/20 text-kellenberg-royal text-xs font-semibold px-3 py-1 rounded-full">
+                        Available
+                      </div>
+                    )}
                   </div>
                 </button>
               ))}
