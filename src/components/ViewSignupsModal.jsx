@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { X, Download, Check, XCircle, UserCheck, UserX, Clock } from 'lucide-react'
+import { X, Download, Printer, Check, XCircle, UserCheck, UserX, Clock } from 'lucide-react'
 import { useEventSignups } from '../hooks/useEvents'
 import { updateSignupStatus } from '../utils/eventHelpers'
 import { getStatusColor, getStatusIcon, formatHours } from '../utils/formatters'
 import { checkInStudent, markAttended, markNoShow } from '../utils/attendanceHelpers'
 import Button from './Button'
+import PrintableSignupList from './PrintableSignupList'
 
 export default function ViewSignupsModal({ event, onClose, onUpdate }) {
   const { signups, loading, error, refetch } = useEventSignups(event.id)
@@ -118,6 +119,10 @@ export default function ViewSignupsModal({ event, onClose, onUpdate }) {
     window.URL.revokeObjectURL(url)
   }
 
+  const handlePrint = () => {
+    window.print()
+  }
+
   const statusCounts = {
     All: signups.length,
     Pending: signups.filter(s => s.status === 'Pending').length,
@@ -130,9 +135,19 @@ export default function ViewSignupsModal({ event, onClose, onUpdate }) {
     ? signups 
     : signups.filter(s => s.status === statusFilter)
 
-  return createPortal(
+  return (
+    <>
+    {/* Printable Content - Rendered separately for clean printing */}
+    {createPortal(
+      <div className="print-container">
+        <PrintableSignupList event={event} signups={filteredSignups} />
+      </div>,
+      document.body
+    )}
+    
+    {createPortal(
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 overflow-y-auto" 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 overflow-y-auto no-print" 
       style={{ zIndex: 9999 }}
       onClick={onClose}
     >
@@ -151,14 +166,24 @@ export default function ViewSignupsModal({ event, onClose, onUpdate }) {
           </div>
           <div className="flex items-center gap-2">
             {signups.length > 0 && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={handleExport}
-              >
-                <Download className="w-4 h-4 mr-1" />
-                Export CSV
-              </Button>
+              <>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handlePrint}
+                >
+                  <Printer className="w-4 h-4 mr-1" />
+                  Print
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleExport}
+                >
+                  <Download className="w-4 h-4 mr-1" />
+                  Download
+                </Button>
+              </>
             )}
             <button
               onClick={onClose}
@@ -357,6 +382,8 @@ export default function ViewSignupsModal({ event, onClose, onUpdate }) {
       </div>
     </div>,
     document.body
+    )}
+    </>
   )
 }
 

@@ -63,3 +63,165 @@
   @apply bg-gray-500;
 }
 
+/* ========================================
+   PRINT STYLES
+   ======================================== */
+
+/* Hide printable content by default */
+.print-container {
+  display: none;
+}
+
+.printable-signup-list {
+  display: none;
+}
+
+/* Print-specific styles */
+@media print {
+  /* Hide the main app content */
+  #root {
+    display: none !important;
+  }
+  
+  /* Hide any portal content that's NOT the printable list */
+  body > div:not(.print-container) {
+    display: none !important;
+  }
+  
+  /* Show only the print container */
+  .print-container {
+    display: block !important;
+  }
+  
+  .printable-signup-list {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    padding: 20px !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Page settings */
+  @page {
+    size: letter portrait;
+    margin: 0.5in;
+  }
+
+  html, body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* School Header Styles */
+  .print-header {
+    text-align: center;
+    border-bottom: 3px solid #1e3a8a;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+  }
+
+  .print-school-name {
+    font-size: 24px;
+    font-weight: bold;
+    color: #1e3a8a;
+    margin: 0;
+    letter-spacing: 1px;
+  }
+
+  .print-program-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #b8860b;
+    margin: 5px 0;
+  }
+
+  .print-tagline {
+    font-size: 12px;
+    color: #666;
+    margin: 5px 0 0 0;
+    font-style: italic;
+  }
+
+  /* Event Details Styles */
+  .print-event-details {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+
+  .print-event-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #1e3a8a;
+    margin: 0 0 10px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .print-event-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px 20px;
+  }
+
+  .print-event-info p {
+    margin: 3px 0;
+    font-size: 12px;
+  }
+
+  .print-total-signups {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+    font-size: 14px;
+  }
+
+  /* Table Styles */
+  .print-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+
+  .print-table td {
+    padding: 8px;
+    border: 1px solid #ddd;
+    vertical-align: top;
+  }
+
+  .print-table tbody tr:nth-child(even) {
+    background: #f8f9fa;
+  }
+
+  .print-checkbox-cell {
+    width: 30px;
+    text-align: center;
+    font-size: 16px;
+  }
+
+  .print-grade-cell,
+  .print-homeroom-cell {
+    width: 50px;
+    text-align: center;
+  }
+
+  .print-status-cell {
+    width: 80px;
+    text-align: center;
+  }
+
+  .print-student-name {
+    font-weight: 600;
+    color: #333;
+  }
+
+  .print-student-email {
+    font-size: 10px;
+    color: #666;
+    margin-top: 2px;
+  }
+}
+

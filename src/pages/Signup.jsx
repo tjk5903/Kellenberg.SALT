@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import Button from '../components/Button'
 import Input from '../components/Input'
 import Card, { CardBody } from '../components/Card'
+import { validateEmail, getEmailErrorMessage } from '../config/validation'
 
 export default function Signup() {
   const [formData, setFormData] = useState({
@@ -38,13 +39,18 @@ export default function Signup() {
       return
     }
 
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters')
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters')
       return
     }
 
-    if (formData.userType === 'student' && !formData.email.endsWith('@kellenberg.org')) {
-      setError('Students must use a @kellenberg.org email address')
+    if (!/\d/.test(formData.password)) {
+      setError('Password must contain at least one number')
+      return
+    }
+
+    if (!validateEmail(formData.email)) {
+      setError(getEmailErrorMessage())
       return
     }
 
@@ -173,7 +179,7 @@ export default function Signup() {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                placeholder={formData.userType === 'student' ? 'you@kellenberg.org' : 'your.email@example.com'}
+                placeholder="you@kellenberg.org"
                 autoComplete="email"
               />
 
@@ -228,7 +234,7 @@ export default function Signup() {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="At least 6 characters"
+                placeholder="At least 8 characters with a number"
                 autoComplete="new-password"
               />
 

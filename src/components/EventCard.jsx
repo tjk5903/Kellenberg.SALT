@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Calendar, MapPin, Users, Clock, Award, Shirt } from 'lucide-react'
+import { Calendar, MapPin, Clock, Award, Shirt } from 'lucide-react'
 import { formatDate, formatTimeRange, formatHours, isEventPast, getStatusColor } from '../utils/formatters'
 import { signUpForEvent, checkExistingSignup, getEventSignupCount } from '../utils/eventHelpers'
 import Button from './Button'
@@ -84,16 +84,6 @@ export default function EventCard({ event, studentId, onSignupSuccess }) {
               <MapPin className="w-4 h-4 mr-2 text-kellenberg-royal" />
               <span>{event.location}</span>
             </div>
-
-            {event.capacity && (
-              <div className="flex items-center text-gray-700 text-sm">
-                <Users className="w-4 h-4 mr-2 text-kellenberg-royal" />
-                <span>
-                  {signupCount} / {event.capacity} signed up
-                  {isFull && <span className="text-red-600 ml-2 font-medium">FULL</span>}
-                </span>
-              </div>
-            )}
 
             {event.hours && (
               <div className="flex items-center text-gray-700 text-sm">

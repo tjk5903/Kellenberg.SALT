@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import Button from '../components/Button'
 import Input from '../components/Input'
 import Card, { CardBody } from '../components/Card'
+import { validateEmail, getEmailErrorMessage } from '../config/validation'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -19,6 +20,13 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    
+    // Validate Kellenberg email
+    if (!validateEmail(email)) {
+      setError(getEmailErrorMessage())
+      return
+    }
+    
     setLoading(true)
 
     try {
@@ -43,6 +51,13 @@ export default function Login() {
     e.preventDefault()
     setResetMessage('')
     setError('')
+    
+    // Validate Kellenberg email
+    if (!validateEmail(resetEmail)) {
+      setError(getEmailErrorMessage())
+      return
+    }
+    
     setLoading(true)
 
     try {
