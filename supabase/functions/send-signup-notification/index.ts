@@ -1,5 +1,5 @@
 // supabase/functions/send-signup-notification/index.ts
-// This Edge Function sends signup confirmation emails to students and moderators
+// This Edge Function sends signup confirmation and approval emails to students and moderators
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -111,6 +111,107 @@ function getStudentSignupEmail(notification: Notification): string {
           </ul>
           
           <p>Thank you for your commitment to service!</p>
+          
+          <p style="margin-top: 30px;">
+            <strong>S.A.L.T Team</strong><br/>
+            <em>Service • Allegiance • Leadership • Teamwork</em>
+          </p>
+        </div>
+        
+        <div class="footer">
+          <p>Kellenberg Memorial High School<br/>
+          1400 Glenn Curtiss Boulevard, Uniondale, NY 11553</p>
+          <p>This is an automated confirmation. Please do not reply to this email.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+}
+
+// Email template for STUDENT approval notification
+function getStudentApprovalEmail(notification: Notification): string {
+  const eventDate = new Date(notification.event_date)
+  const dateStr = eventDate.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+  const timeStr = eventDate.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit'
+  })
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(to right, #059669, #10b981); color: white; padding: 30px; border-radius: 10px 10px 0 0; }
+        .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+        .event-details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #FFD700; }
+        .detail-row { margin: 10px 0; }
+        .label { font-weight: bold; color: #059669; }
+        .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
+        .gold { color: #FFD700; }
+        .approved-badge { background: #10b981; color: white; padding: 8px 20px; border-radius: 25px; display: inline-block; font-size: 16px; font-weight: bold; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>🎉 You're Approved!</h1>
+          <p class="gold">S.A.L.T. Service Event Confirmation</p>
+        </div>
+        <div class="content">
+          <p>Hi ${notification.recipient_name?.split(' ')[0] || 'Student'},</p>
+          <p>Congratulations! Your signup has been <strong>approved</strong> by the event moderator!</p>
+          
+          <div style="text-align: center; margin: 20px 0;">
+            <span class="approved-badge">✓ APPROVED</span>
+          </div>
+          
+          <div class="event-details">
+            <h2 style="margin-top: 0; color: #059669;">${notification.event_title}</h2>
+            
+            <div class="detail-row">
+              <span class="label">📅 Date:</span> ${dateStr}
+            </div>
+            
+            <div class="detail-row">
+              <span class="label">🕐 Time:</span> ${timeStr}
+            </div>
+            
+            <div class="detail-row">
+              <span class="label">📍 Location:</span> ${notification.event_location}
+            </div>
+            
+            ${notification.additional_data?.event_hours ? `
+            <div class="detail-row">
+              <span class="label">⭐ Service Hours:</span> ${notification.additional_data.event_hours} hours
+            </div>
+            ` : ''}
+            
+            ${notification.additional_data?.event_description ? `
+            <div class="detail-row">
+              <span class="label">📝 Description:</span><br/>
+              ${notification.additional_data.event_description}
+            </div>
+            ` : ''}
+          </div>
+          
+          <p><strong>What's Next?</strong></p>
+          <ul>
+            <li>Mark your calendar for the event date</li>
+            <li>Arrive on time and prepared for service</li>
+            <li>You'll receive a reminder 24 hours before the event</li>
+            <li>If you can no longer attend, please cancel as soon as possible</li>
+          </ul>
+          
+          <p>Thank you for your commitment to service and community!</p>
           
           <p style="margin-top: 30px;">
             <strong>S.A.L.T Team</strong><br/>
@@ -244,33 +345,41 @@ serve(async (req) => {
       throw fetchError
     }
 
-    // Filter for signup notifications only
+    // Filter for signup and approval notifications
     const signupNotifications = (notifications || []).filter(
-      (n: Notification) => n.notification_type === 'signup_student' || n.notification_type === 'signup_moderator'
+      (n: Notification) => n.notification_type === 'signup_student' || 
+                           n.notification_type === 'signup_moderator' ||
+                           n.notification_type === 'approval_student'
     )
 
     if (signupNotifications.length === 0) {
-      console.log('No signup notifications to send')
+      console.log('No signup/approval notifications to send')
       return new Response(
-        JSON.stringify({ message: 'No signup notifications to send', count: 0 }),
+        JSON.stringify({ message: 'No signup/approval notifications to send', count: 0 }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    console.log(`Found ${signupNotifications.length} signup notification(s) to send`)
+    console.log(`Found ${signupNotifications.length} signup/approval notification(s) to send`)
 
     const results = []
 
     for (const notification of signupNotifications as Notification[]) {
       try {
         // Generate email content based on type
-        const emailHtml = notification.notification_type === 'signup_student'
-          ? getStudentSignupEmail(notification)
-          : getModeratorSignupEmail(notification)
-
-        const subject = notification.notification_type === 'signup_student'
-          ? `Signup Confirmed: ${notification.event_title}`
-          : `New Signup: ${notification.student_name} for ${notification.event_title}`
+        let emailHtml: string
+        let subject: string
+        
+        if (notification.notification_type === 'signup_student') {
+          emailHtml = getStudentSignupEmail(notification)
+          subject = `Signup Confirmed: ${notification.event_title}`
+        } else if (notification.notification_type === 'approval_student') {
+          emailHtml = getStudentApprovalEmail(notification)
+          subject = `Approved! ${notification.event_title}`
+        } else {
+          emailHtml = getModeratorSignupEmail(notification)
+          subject = `New Signup: ${notification.student_name} for ${notification.event_title}`
+        }
 
         // Send email using Resend
         const emailResponse = await fetch('https://api.resend.com/emails', {
@@ -336,11 +445,11 @@ serve(async (req) => {
     }
 
     const successCount = results.filter(r => r.success).length
-    console.log(`Sent ${successCount} out of ${signupNotifications.length} signup notifications`)
+    console.log(`Sent ${successCount} out of ${signupNotifications.length} signup/approval notifications`)
 
     return new Response(
       JSON.stringify({
-        message: 'Signup notifications processed',
+        message: 'Signup/approval notifications processed',
         total: signupNotifications.length,
         successful: successCount,
         failed: signupNotifications.length - successCount,

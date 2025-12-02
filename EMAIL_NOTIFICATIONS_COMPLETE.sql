@@ -4,8 +4,9 @@
 -- This SQL file sets up triggers and functions for:
 -- 1. Student signup confirmation emails
 -- 2. Moderator notification on student signup
--- 3. Moderator notification on student cancellation
--- 4. Moderator reminder 24 hours before event
+-- 3. Student approval notification emails
+-- 4. Moderator notification on student cancellation
+-- 5. Moderator reminder 24 hours before event
 --
 -- PREREQUISITE: Run EMAIL_REMINDERS_SETUP.sql first
 -- ============================================
@@ -230,7 +231,73 @@ END;
 $$;
 
 -- ============================================
--- 6. CREATE TRIGGERS
+-- 6. FUNCTION: Queue Approval Notification
+-- ============================================
+CREATE OR REPLACE FUNCTION queue_approval_notification()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_student RECORD;
+  v_event RECORD;
+BEGIN
+  -- Only proceed if status changed to 'approved'
+  IF NEW.status != 'approved' OR OLD.status = 'approved' THEN
+    RETURN NEW;
+  END IF;
+  
+  -- Get student details
+  SELECT first_name, last_name, email INTO v_student
+  FROM students WHERE id = NEW.student_id;
+  
+  -- Get event and moderator details
+  SELECT * INTO v_event
+  FROM get_event_with_moderator(NEW.event_id);
+  
+  IF v_event IS NULL THEN
+    RETURN NEW;
+  END IF;
+  
+  -- Queue email to STUDENT (approval notification)
+  INSERT INTO email_notification_queue (
+    notification_type,
+    recipient_email,
+    recipient_name,
+    event_id,
+    event_title,
+    event_date,
+    event_location,
+    student_name,
+    student_email,
+    moderator_name,
+    additional_data
+  ) VALUES (
+    'approval_student',
+    v_student.email,
+    v_student.first_name || ' ' || v_student.last_name,
+    NEW.event_id,
+    v_event.event_title,
+    v_event.event_start_date,
+    v_event.event_location,
+    v_student.first_name || ' ' || v_student.last_name,
+    v_student.email,
+    v_event.moderator_first_name || ' ' || v_event.moderator_last_name,
+    jsonb_build_object(
+      'event_description', v_event.event_description,
+      'event_end_date', v_event.event_end_date,
+      'event_hours', v_event.event_hours,
+      'signup_id', NEW.id,
+      'approved_at', NOW()
+    )
+  );
+  
+  RETURN NEW;
+END;
+$$;
+
+-- ============================================
+-- 7. CREATE TRIGGERS
 -- ============================================
 
 -- Trigger for new signups
@@ -246,6 +313,14 @@ CREATE TRIGGER on_student_cancel
   BEFORE DELETE ON student_event
   FOR EACH ROW
   EXECUTE FUNCTION queue_cancellation_notification();
+
+-- Trigger for approvals (status updates to 'approved')
+DROP TRIGGER IF EXISTS on_student_approval ON student_event;
+CREATE TRIGGER on_student_approval
+  AFTER UPDATE ON student_event
+  FOR EACH ROW
+  WHEN (NEW.status = 'approved' AND OLD.status != 'approved')
+  EXECUTE FUNCTION queue_approval_notification();
 
 -- ============================================
 -- 7. FUNCTION: Get Pending Notifications
